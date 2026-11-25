@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modal Mystery: Year 6 Detective Academy</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tone.js for Sound Effects -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <!-- Google Fonts: Fredoka for playful readability & Inter for UI -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            background-image: radial-gradient(#1e293b 1.5px, transparent 1.5px);
+            background-size: 24px 24px;
+        }
+        h1, h2, h3, .font-display {
+            font-family: 'Fredoka', sans-serif;
+        }
+        .magnifying-glass-pulse {
+            animation: pulse-float 3s ease-in-out infinite;
+        }
+        @keyframes pulse-float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-6px) rotate(5deg); }
+        }
+        .clue-card {
+            background: linear-gradient(145deg, #fefce8 0%, #fef08a 100%);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 0 0 2px #eab308;
+        }
+        .btn-option {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-option:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px -3px rgba(59, 130, 246, 0.4);
+        }
+        .btn-option:active:not(:disabled) {
+            transform: translateY(0px);
+        }
+        /* Custom scrollbar for clean look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col items-center justify-center p-4 selection:bg-amber-400 selection:text-slate-900">
+
+    <!-- Main Game Container -->
+    <div class="w-full max-w-3xl bg-slate-900/90 backdrop-blur-md border-2 border-slate-700 rounded-3xl shadow-2xl overflow-hidden flex flex-col">
+        
+        <!-- Top Header Bar -->
+        <header class="bg-slate-800/90 border-b border-slate-700 px-6 py-4 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-400 text-slate-900 flex items-center justify-center text-2xl shadow-md">
+                    🕵️‍♂️
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-bold text-amber-400 tracking-wide">Modal Mystery</h1>
+                    <p class="text-xs text-slate-400 font-medium">Year 6 Detective Academy • May, Might & Could</p>
+                </div>
+            </div>
+
+            <!-- Controls & Score -->
+            <div class="flex items-center gap-3">
+                <button id="golden-rule-btn" onclick="toggleGoldenRule()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs sm:text-sm font-semibold px-3 py-2 rounded-xl transition flex items-center gap-1.5 shadow">
+                    <span>📜</span>
+                    <span class="hidden sm:inline">Detective Rule</span>
+                </button>
+                <button id="sound-toggle" onclick="toggleSound()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 p-2 rounded-xl transition" title="Toggle Sound">
+                    🔊
+                </button>
+                <div class="bg-slate-950 border border-slate-700 px-4 py-1.5 rounded-xl flex items-center gap-2">
+                    <span class="text-amber-400 text-sm">⭐</span>
+                    <span id="score-display" class="font-display font-bold text-lg text-white">0</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Collapsible Detective Golden Rule Banner -->
+        <div id="golden-rule-panel" class="hidden bg-indigo-950/90 border-b border-indigo-700/60 px-6 py-4 text-sm">
+            <div class="flex items-start gap-3">
+                <span class="text-2xl">💡</span>
+                <div>
+                    <h3 class="font-display font-bold text-indigo-300 text-base mb-1">The Detective's Golden Rule of Speculation:</h3>
+                    <p class="text-indigo-100 leading-relaxed">
+                        When we make a smart guess about something we are not 100% sure about, we use <strong class="text-amber-300">may</strong>, <strong class="text-amber-300">might</strong>, or <strong class="text-amber-300">could</strong> + <span class="underline decoration-amber-400 decoration-2 font-semibold">Base Verb</span>!
+                    </p>
+                    <div class="mt-2 flex flex-wrap gap-2 text-xs">
+                        <span class="bg-emerald-900/60 border border-emerald-500/40 text-emerald-200 px-2.5 py-1 rounded-lg">✅ It <strong>may rain</strong> soon.</span>
+                        <span class="bg-rose-900/60 border border-rose-500/40 text-rose-200 px-2.5 py-1 rounded-lg">❌ It <strong>might snowing</strong>.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Screen 1: Welcome / Briefing Screen -->
+        <main id="start-screen" class="p-6 sm:p-10 text-center flex flex-col items-center">
+            <div class="text-6xl sm:text-7xl mb-4 magnifying-glass-pulse">🔍</div>
+            <h2 class="text-3xl sm:text-4xl font-bold text-white mb-3">Welcome, Junior Detective!</h2>
+            <p class="text-slate-300 max-w-lg text-base sm:text-lg mb-6 leading-relaxed">
+                Choose your Detective Level below! Examine every clue carefully and use <span class="text-amber-400 font-bold">may</span>, <span class="text-amber-400 font-bold">might</span>, and <span class="text-amber-400 font-bold">could</span> to solve the mystery.
+            </p>
+
+            <!-- Level Selection Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-2xl mb-6 text-left">
+                <!-- Level 1: Weak -->
+                <button onclick="selectLevel('weak')" id="lvl-btn-weak" class="level-card bg-slate-800/90 hover:bg-slate-800 border-2 border-emerald-500/60 hover:border-emerald-400 p-4 rounded-2xl transition transform hover:-translate-y-1 flex flex-col justify-between group">
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-2xl">🌱</span>
+                            <span class="text-[11px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 px-2.5 py-0.5 rounded-full">Level 1 • Weak</span>
+                        </div>
+                        <h3 class="text-emerald-400 font-display font-bold text-xl">Rookie</h3>
+                        <p class="text-xs text-slate-300 mt-1.5 leading-relaxed">Short, simple clues with clear picture hints and basic sentences.</p>
+                    </div>
+                    <div class="mt-4 text-xs font-bold text-emerald-300 group-hover:translate-x-1 transition-transform">Play Rookie ➔</div>
+                </button>
+
+                <!-- Level 2: Average -->
+                <button onclick="selectLevel('average')" id="lvl-btn-average" class="level-card bg-slate-800/90 hover:bg-slate-800 border-2 border-amber-500/60 hover:border-amber-400 p-4 rounded-2xl transition transform hover:-translate-y-1 flex flex-col justify-between group">
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-2xl">🕵️‍♂️</span>
+                            <span class="text-[11px] font-bold uppercase tracking-wider bg-amber-500/20 text-amber-300 px-2.5 py-0.5 rounded-full">Level 2 • Average</span>
+                        </div>
+                        <h3 class="text-amber-400 font-display font-bold text-xl">Investigator</h3>
+                        <p class="text-xs text-slate-300 mt-1.5 leading-relaxed">Standard Year 6 mysteries testing base verbs vs. wrong verb forms.</p>
+                    </div>
+                    <div class="mt-4 text-xs font-bold text-amber-300 group-hover:translate-x-1 transition-transform">Play Investigator ➔</div>
+                </button>
+
+                <!-- Level 3: Excellent -->
+                <button onclick="selectLevel('excellent')" id="lvl-btn-excellent" class="level-card bg-slate-800/90 hover:bg-slate-800 border-2 border-purple-500/60 hover:border-purple-400 p-4 rounded-2xl transition transform hover:-translate-y-1 flex flex-col justify-between group">
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-2xl">🏆</span>
+                            <span class="text-[11px] font-bold uppercase tracking-wider bg-purple-500/20 text-purple-300 px-2.5 py-0.5 rounded-full">Level 3 • Excellent</span>
+                        </div>
+                        <h3 class="text-purple-400 font-display font-bold text-xl">Chief Inspector</h3>
+                        <p class="text-xs text-slate-300 mt-1.5 leading-relaxed">Tricky multi-step clues, negatives (<em>may not</em>), and continuous forms.</p>
+                    </div>
+                    <div class="mt-4 text-xs font-bold text-purple-300 group-hover:translate-x-1 transition-transform">Play Chief ➔</div>
+                </button>
+            </div>
+        </main>
+
+        <!-- Screen 2: Active Case / Quiz Screen -->
+        <main id="quiz-screen" class="hidden p-6 sm:p-8 flex flex-col gap-6">
+            <!-- Progress Bar -->
+            <div class="w-full">
+                <div class="flex flex-wrap justify-between items-center gap-2 text-xs font-semibold text-slate-400 mb-2">
+                    <div class="flex items-center gap-2">
+                        <span id="case-counter" class="uppercase tracking-wider text-amber-400">CASE #1 OF 6</span>
+                        <span id="active-level-badge" class="bg-slate-800 border border-slate-600 text-slate-200 px-2 py-0.5 rounded-md text-[11px]">Level: Investigator</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span id="streak-badge" class="hidden bg-orange-500/20 text-orange-300 border border-orange-500/40 px-2.5 py-0.5 rounded-full">🔥 2 Streak!</span>
+                        <button onclick="backToMenu()" class="text-slate-400 hover:text-white underline text-xs">Change Level</button>
+                    </div>
+                </div>
+                <div class="w-full h-3 bg-slate-800 rounded-full overflow-hidden p-0.5 border border-slate-700">
+                    <div id="progress-bar" class="h-full bg-gradient-to-r from-amber-400 to-emerald-400 rounded-full transition-all duration-500" style="width: 16.6%"></div>
+                </div>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-3 w-full justify-center">
+                <button onclick="restartGame()" class="bg-gradient-to-r from-emerald-400 to-teal-500 hover:from-emerald-300 hover:to-teal-400 text-slate-950 font-display font-bold text-lg px-8 py-3.5 rounded-2xl shadow-lg transition transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2">
+                    <span>🔄</span>
+                    <span>Replay Level</span>
+                </button>
+                <button onclick="backToMenu()" class="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white font-display font-bold text-lg px-8 py-3.5 rounded-2xl shadow-lg transition transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2">
+                    <span>🎯</span>
+                    <span>Choose Another Level</span>
+                </button>
+            </div>
+        </main>
+
+    </div>
+
+    <!-- Game Logic Script -->
+    <script>
+// ... existing code ... -->
+        function toggleGoldenRule() {
+            playSound('click');
+            const panel = document.getElementById('golden-rule-panel');
+            panel.classList.toggle('hidden');
+        }
+
+        // Question Bank Organized by 3 Student Levels (Weak, Average, Excellent)
+        const questionBank = {
+            weak: [
+                {
+                    tag: "Rookie Case #1 • School",
+                    emojis: "🎒🍱⏰",
+                    caption: "Recess Time • Bag in Class",
+                    clueText: "Clue: It is recess time. Sarah's bag is still in class.",
+                    prompt: "Where might Sarah be?",
+                    options: [
+                        "She may be in the library.",
+                        "She might be in the canteen.",
+                        "She could be at home."
+                    ],
+                    correctIndex: 1,
+                    correctFeedback: "Great job! It is recess time and her bag is in class, so she might be in the canteen eating!",
+                    wrongFeedback: "Look at the clue: it is recess time! Where do pupils go to eat during recess?"
+                },
+                {
+                    tag: "Rookie Case #2 • Weather",
+                    emojis: "☂️🧥🌧️",
+                    caption: "Umbrella + Raincoat",
+                    clueText: "Clue: Ahmad takes an umbrella and wears a raincoat.",
+                    prompt: "What can you guess?",
+                    options: [
+                        "It may rain soon.",
+                        "It might snowing today.",
+                        "He could be swimming."
+                    ],
+                    correctIndex: 0,
+                    correctFeedback: "Spot on! 'It may rain soon' uses the base verb 'rain' and matches his umbrella and raincoat.",
+                    wrongFeedback: "Look at the umbrella and raincoat, and remember: use the base verb ('rain') after 'may'!"
+                },
+                {
+                    tag: "Rookie Case #3 • Pet Box",
+                    emojis: "📦🐱🥛",
+                    caption: "Soft 'Meow' Sound",
+                    clueText: "Clue: A small box is moving. You hear a soft 'meow' inside.",
+                    prompt: "What might be inside the box?",
+                    options: [
+                        "A kitten might be inside.",
+                        "A dog may inside.",
+                        "A fish could flying."
+                    ],
+                    correctIndex: 0,
+                    correctFeedback: "Purr-fect! 'Meow' is a cat sound, and 'might be' uses the correct base verb 'be'.",
+                    wrongFeedback: "What animal says 'meow'? Also make sure the sentence has the base verb 'be' after 'might'."
+                },
+                {
+                    tag: "Rookie Case #4 • Sports",
+                    emojis: "🏸👟💦",
+                    caption: "Badminton Racket",
+                    clueText: "Clue: Mei Ling is holding a badminton racket and wearing sports shoes.",
+                    prompt: "What may Mei Ling do?",
+                    options: [
+                        "She may play badminton.",
+                        "She might plays football.",
+                        "She could sleeping."
+                    ],
+                    correctIndex: 0,
+                    correctFeedback: "Awesome! 'She may play badminton' uses the base verb 'play' and matches her racket.",
+                    wrongFeedback: "Check her racket! Remember: use the base verb 'play' (no '-s' or '-ing') after 'may'."
+                },
+                {
+                    tag: "Rookie Case #5 • Night Time",
+                    emojis: "🥱🛌🌙",
+                    caption: "Yawning • Pajamas",
+                    clueText: "Clue: It is 10:30 PM. Ali is wearing pajamas and yawning.",
+                    prompt: "What could Ali do next?",
+                    options: [
+                        "He could go to bed.",
+                        "He may goes to school.",
+                        "He might eating breakfast."
+                    ],
+                    correctIndex: 0,
+                    correctFeedback: "Well done! 'He could go to bed' uses the base verb 'go' and fits the night-time clue.",
+                    wrongFeedback: "It is 10:30 PM and he is in pajamas! Check for the base verb 'go' after 'could'."
+                },
+                {
+                    tag: "Rookie Case #6 • Birthday",
+                    emojis: "🎈🎂🎁",
+                    caption: "Cake + Balloons",
+                    clueText: "Clue: Mom buys a big cake, candles, and colorful balloons.",
+                    prompt: "What might happen today?",
+                    options: [
+                        "We might have a party.",
+                        "We may having a test.",
+                        "We could cleans the car."
+                    ],
+                    correctIndex: 0,
+                    correctFeedback: "Fantastic! Cake and balloons mean a party, and 'might have' uses the base verb 'have'!",
+                    wrongFeedback: "Cake and balloons are for a party! Remember: use the base verb 'have' after 'might'."
+                }
+            ],
+            average: [
+                {
+                    tag: "Investigator Case #1 • School Mystery",
+                    emojis: "🎒🍱⏰",
+                    caption: "Recess Time • Bag in Class",
+                    clueText: "Clue: It is recess time at school. Sarah's school bag is still left behind in the classroom, and her wallet is gone.",
+                    prompt: "Look at the clues carefully! Where might Sarah be?",
+                    options: [
+                        "She may be in the library.",
+                        "She might be in the canteen.",
+                        "She could be at home."
+                    ],
+                    correctIndex: 1,
+                    correctFeedback: "Great detective work! Since it's recess time and her bag is still in class, she might be in the canteen eating!",
+                    wrongFeedback: "Look closer at the clue! It's recess time and her bag is still at school—where do pupils usually go during recess?"
+                },
+                {
+                    tag: "Investigator Case #2 • Weather Watch",
+                    emojis: "☂️🧥☁️",
+                    caption: "Umbrella + Raincoat",
+                    clueText: "Clue: Ahmad brings an umbrella and wears his yellow raincoat before walking out the front door.",
+                    prompt: "What can you guess from Ahmad's gear?",
+                    options: [
+                        "It may rain soon.",
+                        "It might snowing today.",
+                        "He could be swimming."
+                    ],
+                    correctIndex: 0,
+                    correctFeedback: "Spot on! 'It may rain soon' uses the base verb 'rain' right after 'may', and matches the umbrella and raincoat.",
+                    wrongFeedback: "Check the clues (umbrella + raincoat) and remember the Detective Golden Rule: use the base verb after may, might, or could!"
+                },
+                {
+                    tag: "Investigator Case #3 • Kitchen Clue",
+                    emojis: "🥣🥛🥄",
+                    caption: "Empty Bowl • 7:30 AM",
+                    clueText: "Clue: You walk into the kitchen at 7:30 AM. There is an empty cereal bowl, a spoon, and milk on the table.",
+                    prompt: "What could you deduce about your brother?",
+                    options: [
+                        "He may sleeping in his bed.",
+                        "He could be on his way to school.",
+                        "He might cooks dinner now."
+                    ],
+                    correctIndex: 1,
+                    correctFeedback: "Brilliant! He already ate breakfast at 7:30 AM, so he could be on his way to school. ('could' + base verb 'be').",
+                    wrongFeedback: "Look at the time (7:30 AM) and check the grammar! After 'may' or 'might', we cannot use '-ing' or '-s' directly."
+                },
+                {
+                    tag: "Investigator Case #4 • Locked House",
+                    emojis: "🔒🔦🌙",
+                    caption: "All Lights Off • No Car",
+                    clueText: "Clue: You knock on Mr. Tan's door at 9:00 PM. All the house lights are switched off and his car is gone.",
+                    prompt: "Why is nobody answering the door?",
+                    options: [
+                        "Mr. Tan could be out for dinner.",
+                        "He may watching TV inside.",
+                        "He might at the supermarket."
+                    ],
+                    correctIndex: 0,
+                    correctFeedback: "Sharp eyes! His car is gone and lights are off, so he could be out for dinner. ('could' + base verb 'be').",
+                    wrongFeedback: "Check the missing verbs! 'May watching' and 'might at' are missing the base verb 'be'."
+                },
+                {
+                    tag: "Investigator Case #5 • Jungle Trek",
+                    emojis: "🌿👣🐘",
+                    caption: "Giant Footprints • Mud",
+                    clueText: "Clue: During a jungle trek in Pahang, the ranger spots giant round footprints in the mud and high broken branches.",
+                    prompt: "What could have made these giant tracks?",
+                    options: [
+                        "A wild elephant could be nearby.",
+                        "A tiny mouse might lives here.",
+                        "A tiger may flying above the trees."
+                    ],
+                    correctIndex: 0,
+                    correctFeedback: "Awesome deduction! Giant round footprints and high broken branches mean a wild elephant could be nearby!",
+                    wrongFeedback: "Check the size of the footprints (giant!) and make sure the verb after the modal is in its base form."
+                },
+                {
+                    tag: "Investigator Case #6 • Wet Floor",
+                    emojis: "🪟💧🌬️",
+                    caption: "Open Window • Puddle",
+                    clueText: "Clue: You wake up and see a big puddle of water on the floor right underneath an open window.",
+                    prompt: "How did the floor get wet?",
+                    options: [
+                        "Rain might have blown through the window.",
+                        "Someone may spilled juice from outside.",
+                        "A cat could swims on the floor."
+                    ],
+                    correctIndex: 0,
+                    correctFeedback: "Spot on! Water right under an open window means rain might have blown inside during the night.",
+                    wrongFeedback: "Look at where the puddle is (under an open window!) and check the verb forms after the modals."
+                }
+            ],
+            excellent: [
+                {
+                    tag: "Chief Case #1 • Alibi Check",
+                    emojis: "👟泥🎟️",
+                    caption: "Muddy Boots • Cinema Ticket",
+                    clueText: "Clue: Amir claims he stayed home studying all evening, yet his hiking boots are covered in fresh mud and there is a wet cinema stub from 8:00 PM in his pocket.",
+                    prompt: "What is the most logical speculation?",
+                    options: [
+                        "He might not be telling the truth about staying home.",
+                        "He may studied at the cinema until midnight.",
+                        "He could not goes hiking because it rained."
+                    ],
+                    correctIndex: 0,
+                    correctFeedback: "Masterful deduction! Fresh mud and an 8:00 PM ticket prove he might not be telling the truth. Notice how 'might not + be' is formed!",
+                    wrongFeedback: "Look closely at the grammar: after 'may', use a base verb (not 'studied'), and after 'could not', use 'go' (not 'goes')."
+                },
+                {
+                    tag: "Chief Case #2 • Missing Trophy",
+                    emojis: "🏆🔍🧤",
+                    caption: "Unlocked Case • White Chalk",
+                    clueText: "Clue: The school sports trophy is missing from an unlocked glass cabinet. There is no broken glass, only white chalk dust on the handle.",
+                    prompt: "What could a detective infer from the evidence?",
+                    options: [
+                        "Someone from a classroom might have taken it as a prank.",
+                        "A burglar could breaks the glass with a hammer.",
+                        "The principal may locked it in the safe yesterday."
+                    ],
+                    correctIndex: 0,
+                    correctFeedback: "Brilliant! No broken glass + chalk dust points to a classroom prank, and 'might have taken' correctly speculates about a past action!",
+                    wrongFeedback: "Check the clues (no broken glass!) and grammar: 'could breaks' and 'may locked' both break the base-verb rule."
+                },
+                {
+                    tag: "Chief Case #3 • Silent Kitchen",
+                    emojis: "♨️🍵📖",
+                    caption: "Steaming Tea • Open Book",
+                    clueText: "Clue: You enter the study room and find a mug of tea still steaming hot beside an open novel with a bookmark lying next to it.",
+                    prompt: "What might be happening right now?",
+                    options: [
+                        "The reader may have just stepped out for a moment.",
+                        "Nobody could been in this room since yesterday.",
+                        "The tea might boiling on the desk by itself."
+                    ],
+                    correctIndex: 0,
+                    correctFeedback: "Sharp observation! Steam means the tea was poured minutes ago, so the reader may have just stepped out.",
+                    wrongFeedback: "Hot steam means someone was just there! Also check grammar: 'could been' and 'might boiling' are missing auxiliary verbs."
+                },
+                {
+                    tag: "Chief Case #4 • Late Arrival",
+                    emojis: "🚌🚦📱",
+                    caption: "Heavy Traffic • 8:15 AM",
+                    clueText: "Clue: Aisha is usually the earliest pupil in class, but it is 8:15 AM and her seat is empty. A parent mentioned a road accident near the highway.",
+                    prompt: "Why hasn't Aisha arrived yet?",
+                    options: [
+                        "Her school bus could be stuck in the traffic jam.",
+                        "She might oversleeps because she is lazy.",
+                        "She may not comes to school for the rest of the year."
+                    ],
+                    correctIndex: 0,
+                    correctFeedback: "Spot on! Since she is normally early and there's an accident, her bus could be stuck in traffic ('could' + base verb 'be').",
+                    wrongFeedback: "Consider her usual habit (always early) + the traffic accident, and watch out for '-s' endings after 'might' or 'may'!"
+                },
+                {
+                    tag: "Chief Case #5 • Garden Mystery",
+                    emojis: "🌻🍂🐛",
+                    caption: "Chewed Leaves • Silky Cocoon",
+                    clueText: "Clue: Half the leaves on Grandma's hibiscus plant have neat round bite marks, and a pale green chrysalis is hanging under a branch.",
+                    prompt: "What may happen in a couple of weeks?",
+                    options: [
+                        "A butterfly may emerge from that chrysalis.",
+                        "A caterpillar might turns into a spider.",
+                        "Birds could ate the chrysalis yesterday."
+                    ],
+                    correctIndex: 0,
+                    correctFeedback: "Science & grammar excellence! 'A butterfly may emerge' uses the base verb 'emerge' to speculate about the future.",
+                    wrongFeedback: "The prompt asks about 'in a couple of weeks' (future!), and 'might turns' incorrectly adds '-s' after 'might'."
+                },
+                {
+                    tag: "Chief Case #6 • Science Lab",
+                    emojis: "🧪❄️🌡️",
+                    caption: "Water Droplets Outside Glass",
+                    clueText: "Clue: During a hot afternoon in Kuala Lipis, tiny water droplets appear on the outside of a cold glass of iced syrup—even though the glass isn't leaking.",
+                    prompt: "How could a young scientist explain this?",
+                    options: [
+                        "Water vapour in the warm air might be condensing on the cold glass.",
+                        "The ice cubes may melting through the solid glass.",
+                        "Someone could pours water on the table every minute."
+                    ],
+                    correctIndex: 0,
+                    correctFeedback: "Phenomenal work, Chief Inspector! Warm water vapour condensing on a cold surface explains the droplets, and 'might be condensing' is grammatically spot-on!",
+                    wrongFeedback: "Think about condensation in science, and check the grammar: 'may melting' needs 'be', and 'could pours' shouldn't have '-s'."
+                }
+            ]
+        };
+
+        // Game State Variables
+        let selectedLevel = 'average';
+        let activeCases = questionBank.average;
+        let currentIndex = 0;
+        let score = 0;
+        let correctCount = 0;
+        let currentStreak = 0;
+        let bestStreak = 0;
+        let hasAnsweredCurrent = false;
+
+        // DOM Elements
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const scoreDisplay = document.getElementById('score-display');
+        const caseCounter = document.getElementById('case-counter');
+        const activeLevelBadge = document.getElementById('active-level-badge');
+        const streakBadge = document.getElementById('streak-badge');
+        const progressBar = document.getElementById('progress-bar');
+        const clueTag = document.getElementById('clue-tag');
+        const clueEmojis = document.getElementById('clue-emojis');
+        const clueCaption = document.getElementById('clue-caption');
+        const clueText = document.getElementById('clue-text');
+        const questionPrompt = document.getElementById('question-prompt');
+        const optionsContainer = document.getElementById('options-container');
+        const feedbackBox = document.getElementById('feedback-box');
+        const feedbackIcon = document.getElementById('feedback-icon');
+        const feedbackTitle = document.getElementById('feedback-title');
+        const feedbackMessage = document.getElementById('feedback-message');
+        const nextBtnText = document.getElementById('next-btn-text');
+
+        function selectLevel(level) {
+            selectedLevel = level;
+            activeCases = questionBank[level];
+            startGame();
+        }
+
+        function backToMenu() {
+            playSound('click');
+            quizScreen.classList.add('hidden');
+            resultScreen.classList.add('hidden');
+            startScreen.classList.remove('hidden');
+        }
+
+        function startGame() {
+            playSound('click');
+            currentIndex = 0;
+            score = 0;
+            correctCount = 0;
+            currentStreak = 0;
+            bestStreak = 0;
+            updateScoreUI();
+
+            // Set Level Badge Styling
+            const levelLabels = {
+                weak: { text: "🌱 Level 1: Rookie (Weak)", classes: "bg-emerald-950 border-emerald-500/50 text-emerald-300" },
+                average: { text: "🕵️‍♂️ Level 2: Investigator (Average)", classes: "bg-amber-950 border-amber-500/50 text-amber-300" },
+                excellent: { text: "🏆 Level 3: Chief Inspector (Excellent)", classes: "bg-purple-950 border-purple-500/50 text-purple-300" }
+            };
+            activeLevelBadge.textContent = levelLabels[selectedLevel].text;
+            activeLevelBadge.className = `border px-2.5 py-0.5 rounded-md text-[11px] font-bold ${levelLabels[selectedLevel].classes}`;
+
+            startScreen.classList.add('hidden');
+            resultScreen.classList.add('hidden');
+            quizScreen.classList.remove('hidden');
+
+            loadQuestion();
+        }
+
+        function updateScoreUI() {
+            scoreDisplay.textContent = score;
+            if (currentStreak >= 2) {
+                streakBadge.textContent = `🔥 ${currentStreak} Streak!`;
+                streakBadge.classList.remove('hidden');
+            } else {
+                streakBadge.classList.add('hidden');
+            }
+        }
+
+        function loadQuestion() {
+            hasAnsweredCurrent = false;
+            const currentCase = activeCases[currentIndex];
+
+            // Update Progress & Headers
+            caseCounter.textContent = `CASE #${currentIndex + 1} OF ${activeCases.length}`;
+            const progressPercent = ((currentIndex + 1) / activeCases.length) * 100;
+            progressBar.style.width = `${progressPercent}%`;
+
+            // Populate Evidence Card
+            clueTag.textContent = currentCase.tag;
+            clueEmojis.textContent = currentCase.emojis;
+            clueCaption.textContent = currentCase.caption;
+            clueText.textContent = currentCase.clueText;
+            questionPrompt.textContent = currentCase.prompt;
+
+            // Reset Feedback Box
+            feedbackBox.classList.add('hidden');
+            feedbackBox.className = "hidden rounded-2xl p-4 sm:p-5 border-2 transition-all duration-300";
+
+            // Render Option Buttons
+            optionsContainer.innerHTML = '';
+            const optionLetters = ['A', 'B', 'C'];
+
+            currentCase.options.forEach((optionText, index) => {
+                const button = document.createElement('button');
+                button.className = "btn-option w-full text-left bg-slate-800 hover:bg-slate-750 border-2 border-slate-700 hover:border-amber-400 p-4 rounded-2xl flex items-center gap-4 group";
+                button.onclick = () => selectAnswer(index, button);
+
+                button.innerHTML = `
+                    <span class="w-9 h-9 rounded-xl bg-slate-700 group-hover:bg-amber-400 group-hover:text-slate-950 font-display font-bold flex items-center justify-center text-sm transition-colors flex-shrink-0">
+                        ${optionLetters[index]}
+                    </span>
+                    <span class="font-medium text-base sm:text-lg text-slate-100">${optionText}</span>
+                `;
+                optionsContainer.appendChild(button);
+            });
+
+            // Update Next Button Text on Final Question
+            nextBtnText.textContent = (currentIndex === activeCases.length - 1) ? "See Final Rank" : "Next Case";
+        }
+
+        function selectAnswer(selectedIndex, clickedButton) {
+            if (hasAnsweredCurrent) return;
+            hasAnsweredCurrent = true;
+
+            const currentCase = activeCases[currentIndex];
+            const isCorrect = selectedIndex === currentCase.correctIndex;
+            const allButtons = optionsContainer.querySelectorAll('button');
+
+            // Disable all buttons and highlight correct/wrong answers
+            allButtons.forEach((btn, idx) => {
+                btn.disabled = true;
+                btn.classList.remove('hover:border-amber-400');
+
+                if (idx === currentCase.correctIndex) {
+                    btn.classList.remove('bg-slate-800', 'border-slate-700');
+                    btn.classList.add('bg-emerald-950/90', 'border-emerald-400', 'text-emerald-100');
+                    btn.querySelector('span:first-child').classList.remove('bg-slate-700');
+                    btn.querySelector('span:first-child').classList.add('bg-emerald-400', 'text-slate-950');
+                } else if (idx === selectedIndex && !isCorrect) {
+                    btn.classList.remove('bg-slate-800', 'border-slate-700');
+                    btn.classList.add('bg-rose-950/90', 'border-rose-500', 'text-rose-100');
+                    btn.querySelector('span:first-child').classList.remove('bg-slate-700');
+                    btn.querySelector('span:first-child').classList.add('bg-rose-500', 'text-white');
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+
+            // Update Score, Streak & Show Conditional Feedback
+            feedbackBox.classList.remove('hidden');
+
+            if (isCorrect) {
+                playSound('correct');
+                currentStreak++;
+                if (currentStreak > bestStreak) bestStreak = currentStreak;
+                correctCount++;
+                // Base 100 points + streak bonus
+                const bonus = (currentStreak > 1) ? 20 : 0;
+                score += (100 + bonus);
+                updateScoreUI();
+
+                feedbackBox.classList.add('bg-emerald-950/80', 'border-emerald-500', 'text-emerald-100');
+                feedbackIcon.textContent = "✅";
+                feedbackTitle.textContent = bonus > 0 ? `Correct! (+${100 + bonus} pts • Streak Bonus!)` : "Correct! (+100 pts)";
+                feedbackTitle.className = "font-display font-bold text-lg mb-1 text-emerald-300";
+                feedbackMessage.textContent = currentCase.correctFeedback;
+            } else {
+                playSound('wrong');
+                currentStreak = 0;
+                updateScoreUI();
+
+                feedbackBox.classList.add('bg-amber-950/80', 'border-amber-500', 'text-amber-100');
+                feedbackIcon.textContent = "🔍";
+                feedbackTitle.textContent = "Not quite—check the evidence!";
+                feedbackTitle.className = "font-display font-bold text-lg mb-1 text-amber-300";
+                feedbackMessage.textContent = currentCase.wrongFeedback;
+            }
+        }
+
+        function nextQuestion() {
+            playSound('click');
+            currentIndex++;
+            if (currentIndex < activeCases.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            playSound('win');
+            quizScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+
+            document.getElementById('final-score').textContent = score;
+            document.getElementById('final-accuracy').textContent = `${correctCount}/${activeCases.length}`;
+            document.getElementById('final-streak').textContent = `${bestStreak}🔥`;
+
+            const rankBadge = document.getElementById('rank-badge');
+            const rankTitle = document.getElementById('rank-title');
+            const rankDescription = document.getElementById('rank-description');
+
+            if (correctCount === activeCases.length) {
+                rankBadge.textContent = "🏆";
+                rankTitle.textContent = "Master Detective!";
+                rankDescription.textContent = `Unbelievable! You solved all ${activeCases.length} cases in this level with 100% accuracy! Ready for the next challenge?`;
+            } else if (correctCount >= 4) {
+                rankBadge.textContent = "🕵️‍♂️";
+                rankTitle.textContent = "Senior Case Investigator!";
+                rankDescription.textContent = `Awesome work! You solved ${correctCount} out of ${activeCases.length} cases. Try again for a perfect score or switch levels!`;
+            } else if (correctCount >= 2) {
+                rankBadge.textContent = "🔎";
+                rankTitle.textContent = "Junior Detective!";
+                rankDescription.textContent = "Good effort! Remember the Golden Rule (modal + base verb) and try again to earn a higher rank!";
+            } else {
+                rankBadge.textContent = "📋";
+                rankTitle.textContent = "Detective Trainee!";
+                rankDescription.textContent = "Every great detective starts with training! Click 'Detective Rule' at the top and give the cases another try.";
+            }
+        }
+
+        function restartGame() {
+            startGame();
+        }
+    </script>
+</body>
+</html>
